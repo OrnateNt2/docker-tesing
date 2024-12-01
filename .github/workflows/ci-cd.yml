@@ -3,7 +3,7 @@ name: CI/CD Docker Bot
 on:
   push:
     branches:
-      - main  # Запускать workflow при пуше в main
+      - main  # Запускать workflow при пуше в ветку main
 
 jobs:
   build-and-deploy:
@@ -21,10 +21,18 @@ jobs:
     - name: Build and Deploy
       run: |
         ssh -o StrictHostKeyChecking=no root@195.133.25.229 << 'EOF'
+        # Остановить и удалить старый контейнер, если он существует
         docker stop docker-testing || true
         docker rm docker-testing || true
+
+        # Пересобрать образ
         cd /root/docker-tesing
         git pull
         docker build -t docker-testing .
-        docker run -d --name docker-testing -p 8080:8080 docker-testing
+
+        # Убедиться, что volume для базы данных существует
+        docker volume create docker-testing-data
+
+        # Запустить контейнер с подключением volume
+        docker run -d --name docker-testing -p 8080:8080 -v docker-testing-data:/usr/src/app/data docker-testing
         EOF
