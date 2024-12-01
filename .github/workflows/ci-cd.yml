@@ -3,7 +3,7 @@ name: CI/CD Docker Bot
 on:
   push:
     branches:
-      - main
+      - main  # Запускать workflow при пуше в main
 
 jobs:
   build-and-deploy:
