@@ -1,9 +1,9 @@
-name: CI/CD Telegram Bot
+name: CI/CD Docker Bot
 
 on:
   push:
     branches:
-      - main
+      - main  # Запускать при пуше в ветку main
 
 jobs:
   build-and-deploy:
@@ -13,21 +13,20 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
 
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
     - name: Build Docker Image
-      run: docker build -t telegram-bot .
-
-    - name: Push Docker Image
       run: |
-        docker tag telegram-bot:latest 195.133.25.229/telegram-bot:latest
-        docker push 195.133.25.229/telegram-bot:latest
+        docker build -t docker-testing .
 
-    - name: Deploy on Server
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+    - name: Push Docker Image to Server
       run: |
-        ssh -i ~/.ssh/id_rsa user@195.133.25.229 <<EOF
-        docker pull 195.133.25.229/telegram-bot:latest
-        docker stop telegram-bot || true
-        docker rm telegram-bot || true
-        docker run -d --name telegram-bot -p 8080:8080 telegram-bot:latest
+        ssh -o StrictHostKeyChecking=no root@195.133.25.229 << EOF
+        docker stop docker-testing || true
+        docker rm docker-testing || true
+        docker build -t docker-testing .
+        docker run -d --name docker-testing -p 8080:8080 docker-testing
         EOF
