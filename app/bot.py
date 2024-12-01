@@ -1,14 +1,11 @@
+from telegram import Update
+from telegram.ext import Updater, CommandHandler, CallbackContext
 import sqlite3
-from aiogram import Bot, Dispatcher, types
-from aiogram.utils import executor
 
 # Укажите токен вашего бота
 BOT_TOKEN = "5729193808:AAFfQaNQ_CXMslH7WpDgSP90_rYTfV0CIbc"
 
-bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher(bot)
-
-# Функция для получения данных из SQLite
+# Функция для получения данных из базы
 def get_data():
     conn = sqlite3.connect("app/database.db")
     cursor = conn.cursor()
@@ -17,15 +14,26 @@ def get_data():
     conn.close()
     return rows
 
-# Команда /start
-@dp.message_handler(commands=["start"])
-async def start_command(message: types.Message):
+# Обработчик команды /start
+def start(update: Update, context: CallbackContext):
     data = get_data()
     if data:
         response = "\n".join([f"{row[0]}: {row[1]}" for row in data])
     else:
         response = "Данных в базе пока нет."
-    await message.reply(response)
+    update.message.reply_text(response)
+
+def main():
+    # Создаем Updater и подключаем диспетчер
+    updater = Updater(token=BOT_TOKEN)
+
+    # Добавляем обработчики команд
+    updater.dispatcher.add_handler(CommandHandler("start", start))
+
+    # Запускаем бота
+    print("Бот запущен...")
+    updater.start_polling()
+    updater.idle()
 
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True)
+    main()
