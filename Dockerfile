@@ -8,8 +8,11 @@ WORKDIR /usr/src/app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Скопировать все файлы
+# Скопировать приложение
 COPY . .
+
+# Убедитесь, что папка для базы данных существует
+RUN mkdir -p /usr/src/app/data
 
 # Открыть порт для бота
 EXPOSE 8080

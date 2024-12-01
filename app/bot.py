@@ -5,9 +5,10 @@ import sqlite3
 # Укажите токен вашего бота
 BOT_TOKEN = "5729193808:AAFfQaNQ_CXMslH7WpDgSP90_rYTfV0CIbc"
 #test
+DB_PATH = "/usr/src/app/data/database.db"
 # Функция для получения данных из базы
 def get_data():
-    conn = sqlite3.connect("app/database.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM data")
     rows = cursor.fetchall()
