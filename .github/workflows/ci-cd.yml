@@ -3,7 +3,7 @@ name: CI/CD Docker Bot
 on:
   push:
     branches:
-      - main  # Запускать при пуше в ветку main
+      - main
 
 jobs:
   build-and-deploy:
@@ -18,15 +18,13 @@ jobs:
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Build Docker Image
+    - name: Build and Deploy
       run: |
-        docker build -t docker-testing .
-
-    - name: Push Docker Image to Server
-      run: |
-        ssh -o StrictHostKeyChecking=no root@195.133.25.229 << EOF
+        ssh -o StrictHostKeyChecking=no root@195.133.25.229 << 'EOF'
         docker stop docker-testing || true
         docker rm docker-testing || true
+        cd /root/docker-tesing
+        git pull
         docker build -t docker-testing .
         docker run -d --name docker-testing -p 8080:8080 docker-testing
         EOF
