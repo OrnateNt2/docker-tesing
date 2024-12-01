@@ -1,0 +1,33 @@
+name: CI/CD Telegram Bot
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Build Docker Image
+      run: docker build -t telegram-bot .
+
+    - name: Push Docker Image
+      run: |
+        docker tag telegram-bot:latest 195.133.25.229/telegram-bot:latest
+        docker push 195.133.25.229/telegram-bot:latest
+
+    - name: Deploy on Server
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      run: |
+        ssh -i ~/.ssh/id_rsa user@195.133.25.229 <<EOF
+        docker pull 195.133.25.229/telegram-bot:latest
+        docker stop telegram-bot || true
+        docker rm telegram-bot || true
+        docker run -d --name telegram-bot -p 8080:8080 telegram-bot:latest
+        EOF
