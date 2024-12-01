@@ -4,7 +4,7 @@ import sqlite3
 
 # Укажите токен вашего бота
 BOT_TOKEN = "5729193808:AAFfQaNQ_CXMslH7WpDgSP90_rYTfV0CIbc"
-
+#test
 # Функция для получения данных из базы
 def get_data():
     conn = sqlite3.connect("app/database.db")
