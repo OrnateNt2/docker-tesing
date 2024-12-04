@@ -8,14 +8,17 @@ WORKDIR /usr/src/app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Скопировать приложение
+# Скопировать файлы приложения
 COPY . .
 
-# Убедитесь, что папка для базы данных существует
+# Убедиться, что папка для базы данных существует
 RUN mkdir -p /usr/src/app/data
+
+# Инициализация базы данных
+RUN python app/init_db.py
 
 # Открыть порт для бота
 EXPOSE 8080
 
-# Запустить бота
+# Запуск приложения
 CMD ["python", "app/bot.py"]
