@@ -1,9 +1,13 @@
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler
 import sqlite3
+import redis
 
-# Укажите путь к базе данных
+# Укажите путь к базе данных SQLite
 DB_PATH = "/usr/src/app/data/database.db"
+
+# Подключение к Redis
+redis_client = redis.Redis(host='redis', port=6379, decode_responses=True)
 
 # Этапы для ConversationHandler
 WAITING_FOR_INPUT = 1
@@ -27,11 +31,21 @@ def add_data(info: str):
 
 # Обработчик команды /start
 def start(update: Update, context: CallbackContext):
-    data = get_data()
-    if data:
-        response = "\n".join([f"{row[0]}: {row[1]}" for row in data])
+    # Проверяем, есть ли данные в Redis
+    cached_data = redis_client.get("start_data")
+    if cached_data:
+        response = cached_data
     else:
-        response = "Данных в базе пока нет."
+        # Если данных нет в Redis, получаем их из SQLite
+        data = get_data()
+        if data:
+            response = "\n".join([f"{row[0]}: {row[1]}" for row in data])
+        else:
+            response = "Данных в базе пока нет."
+
+        # Кэшируем данные в Redis на 60 секунд
+        redis_client.set("start_data", response, ex=60)
+
     update.message.reply_text(response)
 
 # Обработчик команды /add
@@ -43,6 +57,10 @@ def add_command(update: Update, context: CallbackContext):
 def handle_input(update: Update, context: CallbackContext):
     user_input = update.message.text
     add_data(user_input)
+
+    # Очистка кэша Redis после добавления новых данных
+    redis_client.delete("start_data")
+
     update.message.reply_text(f"Данные '{user_input}' успешно добавлены в базу!")
     return ConversationHandler.END
 
@@ -76,3 +94,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+`
