@@ -1,8 +1,10 @@
-# Базовый образ
 FROM python:3.10-slim
 
 # Установить рабочую директорию
 WORKDIR /usr/src/app
+
+# Установить зависимости системы и SQLite
+RUN apt-get update && apt-get install -y sqlite3 && rm -rf /var/lib/apt/lists/*
 
 # Скопировать зависимости и установить их
 COPY requirements.txt ./
