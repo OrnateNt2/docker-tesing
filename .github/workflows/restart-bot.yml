@@ -1,0 +1,22 @@
+name: Restart Bot
+
+on:
+  workflow_dispatch:  # Это позволяет вручную запускать workflow
+
+jobs:
+  restart-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Restart Bot
+      run: |
+        ssh -o StrictHostKeyChecking=no root@195.133.25.229 << 'EOF'
+        docker stop docker-testing || true
+        docker rm docker-testing || true
+        docker run -d --name docker-testing -p 8080:8080 -v docker-testing-data:/usr/src/app/data docker-testing
+        EOF
